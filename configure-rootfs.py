@@ -21,11 +21,13 @@ def stage(root, persistent=True):
     if root == Path('/'):
         raise ValueError('Expected an offline root')
     top = Path(__file__).resolve().parents[2]
+    runpy.run_path(str(top / 'device/linux_device_common/wifi-common.py'))['stage'](root)
+    runpy.run_path(str(top / 'device/openwrt_device_common/shared/modem-recovery.py'))['stage'](root)
     a = SimpleNamespace(persistent=persistent)
     base_profile = (root / 'etc/e5/device-profile').read_text().strip() if (root / 'etc/e5/device-profile').exists() else ''
     if base_profile == 'e5':
         shutil.copy2(Path(__file__).with_name('overlay') / 'etc/config/unisoc_modem', root / 'etc/config/unisoc_modem')
-    for name in ('vendor-start.sh', 'android-run', 'e5-modem-coldboot'):
+    for name in ('vendor-start.sh', 'android-import-perms.sh', 'android-run', 'e5-modem-coldboot'):
         dst = root / 'opt/e5' / name
         shutil.copy2(top / 'device/linux_device_common/overlay/opt/e5' / name, dst)
         dst.chmod(0o755)
